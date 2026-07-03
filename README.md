@@ -60,7 +60,7 @@ Run `example_residualundoc.do` for a self-contained tour of all five subcommands
 plus the ACS PUMS integration pattern. It uses simulated data and needs no
 Census API key or external download.
 
-## Going below the published tables (ACS PUMS)
+## Estimation at smaller/lower levels of aggregation via PUMS published tables (ACS PUMS)
 
 The estimator works on aggregated counts, so person-level ACS PUMS enters as a
 data-prep step: tabulate noncitizen counts by subgroup from the PUMS person file
