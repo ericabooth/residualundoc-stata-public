@@ -19,17 +19,10 @@ From this repository (replace `USER` with the GitHub account hosting it):
 
 ```stata
 net install residualundoc, ///
-    from("https://raw.githubusercontent.com/USER/residualundoc-stata-public/main/") replace
+    from("https://raw.githubusercontent.com/ericabooth/residualundoc-stata-public/main/") replace
 help residualundoc
 ```
-
-Or clone/download and add the folder to your ado-path:
-
-```stata
-adopath ++ "/path/to/residualundoc-stata-public"
-help residualundoc
-```
-
+ 
 Requires Stata 15 or later. The mapping in the accompanying analysis also uses
 `maptile`/`spmap`, but those are not needed for this package.
 
