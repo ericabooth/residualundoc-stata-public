@@ -1,0 +1,3 @@
+v 3
+d residualundoc -- Residual-method estimator of the undocumented population
+p residualundoc  Residual-method estimator of the undocumented (unauthorized) population

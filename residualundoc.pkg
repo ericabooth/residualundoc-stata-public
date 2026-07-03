@@ -1,0 +1,26 @@
+v 3
+d residualundoc: Residual-method estimator of the undocumented (unauthorized) immigrant population.
+d
+d Implements the residual method U = C - L (Warren, Warren & Zheng 2023): survey-
+d measured noncitizens C minus a reconstructed legal noncitizen population L.
+d Five subcommands in one command:
+d   interp       anchor interpolation of theta = U/C over time
+d   apply        cross-sectional: one theta across units (e.g. states), with
+d                optional benchmarking against a direct estimate and a confidence
+d                interval combining sampling error and cross-source spread
+d   direct       Warren-style year-by-year reconstruction of L
+d   transport    transport a survey rate to a benchmark on the odds/logit/ratio scale
+d   triangulate  side-by-side comparison of residual-method sources at one year
+d
+d Requires: Stata 15 or later.
+d Author:   Eric Booth, Texas 2036 (eric.booth at texas2036.org)
+d
+d Distribution-Date: 20260703
+f residualundoc.ado
+f residualundoc_interp.ado
+f residualundoc_apply.ado
+f residualundoc_direct.ado
+f residualundoc_transport.ado
+f residualundoc_triangulate.ado
+f residualundoc.sthlp
+f example_residualundoc.do
