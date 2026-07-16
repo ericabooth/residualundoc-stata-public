@@ -18,8 +18,7 @@ between. The package turns that idea, and several relatives of it, into one comm
 From this repository (replace `USER` with the GitHub account hosting it):
 
 ```stata
-net install residualundoc, ///
-    from("https://raw.githubusercontent.com/ericabooth/residualundoc-stata-public/main/") replace
+net install residualundoc, from("https://raw.githubusercontent.com/ericabooth/residualundoc-stata-public/main/") replace force
 help residualundoc
 ```
  
