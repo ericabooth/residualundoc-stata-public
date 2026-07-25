@@ -405,8 +405,8 @@ Migration Policy Institute. {it:Profile of the Unauthorized Population: Texas}.
 {title:Author}
 
 {pstd}
-Eric Booth, Texas 2036 Data & Research. Report issues by email:
-{browse "mailto:eric.booth@texas2036.org":eric.booth@texas2036.org}.
+Eric A. Booth, Sr Researcher, Texas 2036. Report issues by email:
+{browse "mailto:eric.a.booth@gmail.com":eric.a.booth@gmail.com}.
 
 
 {title:Also see}

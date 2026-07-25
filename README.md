@@ -15,11 +15,20 @@ between. The package turns that idea, and several relatives of it, into one comm
 
 ## Install
 
-From this repository (replace `USER` with the GitHub account hosting it):
+Install from GitHub in Stata:
 
 ```stata
 net install residualundoc, from("https://raw.githubusercontent.com/ericabooth/residualundoc-stata-public/main/") replace force
+discard
+which residualundoc
 help residualundoc
+```
+
+To pull the worked example alongside the command, `net get` the ancillary do-file:
+
+```stata
+net get residualundoc, from("https://raw.githubusercontent.com/ericabooth/residualundoc-stata-public/main/")
+do example_residualundoc.do
 ```
  
 Requires Stata 15 or later. The mapping in the accompanying analysis also uses
@@ -100,5 +109,5 @@ residual-method estimation of the undocumented population.*
 
 ## Author and license
 
-Eric Booth, Texas 2036 Data & Research (`eric.booth@texas2036.org`). Released
+Eric A. Booth, Sr Researcher, Texas 2036 (eric.a.booth@gmail.com). Released
 under the MIT License; see [LICENSE](LICENSE).
