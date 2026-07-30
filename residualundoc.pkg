@@ -13,7 +13,7 @@ d   transport    transport a survey rate to a benchmark on the odds/logit/ratio 
 d   triangulate  side-by-side comparison of residual-method sources at one year
 d
 d Requires: Stata 15 or later.
-d Author:   Eric A. Booth, Sr Researcher, Texas 2036
+d Author: Eric A. Booth, Sr Researcher, Texas 2036
 d Support:  eric.a.booth@gmail.com
 d
 d Distribution-Date: 20260703
