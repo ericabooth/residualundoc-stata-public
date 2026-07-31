@@ -193,7 +193,6 @@ program define residualundoc_interp, rclass byable(recall)
     }
     else if "`tails'" == "linear" & `nA' >= 2 {
         // Linear extrapolation from the two nearest anchor values on each end.
-        tempvar y2 v_min v_ym1 v_max
         // Second-lowest anchor year.
         quietly summarize `yearvar' if `touse' & `generate'at_anchor == 1 & `yearvar' > `ya_min', meanonly
         local y2 = r(min)
@@ -209,9 +208,7 @@ program define residualundoc_interp, rclass byable(recall)
         quietly summarize `generate'published if `touse' & `yearvar' == `ym1', meanonly
         local v_ym1 = r(mean)
 
-        local theta_min = `v_min' / `v_min' * ( `v_min' /  `v_min' )  // placeholder; recomputed below
         // Reconstruct theta at those anchor years from the C_t at those years.
-        tempvar nc_ymin nc_y2 nc_ym1 nc_ymax
         quietly summarize `ncvar' if `touse' & `yearvar' == `ya_min', meanonly
         local nc_ymin = r(mean)
         quietly summarize `ncvar' if `touse' & `yearvar' == `y2', meanonly
