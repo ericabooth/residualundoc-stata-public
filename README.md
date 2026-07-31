@@ -83,10 +83,7 @@ imputations.
 This package was built alongside a draft Texas 2036 analysis that applies the
 method to the United States and Texas (2008-2024), estimates undocumented
 populations for every state in 2024, and extends the approach to health-insurance
-status. Draft materials are in [`draft-analysis/`](draft-analysis/):
-
-- `undocumented_acs_residual_report.pdf` -- technical report
-- `undocumented_acs_residual_deck.pdf` -- slide deck
+status. 
 
 These are drafts shared for transparency and reuse of the method; treat the
 numbers as preliminary.
