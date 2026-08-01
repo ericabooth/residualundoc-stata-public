@@ -113,9 +113,38 @@ program define residualundoc_interp, rclass byable(recall)
             if `touse' & `yearvar' == `yv'
     }
 
+    // ---- Guard: anchors() takes published COUNTS, not shares. A user who
+    //      passes theta directly (e.g. 2023=0.61) would otherwise get a silent
+    //      near-zero estimate, so catch it before any arithmetic.
+    quietly summarize `ncvar' if `touse', meanonly
+    local cbar = r(mean)
+    local n_sharelike = 0
+    forvalues i = 1/`nA' {
+        local pv : word `i' of `values_'
+        if `pv' < 1 local ++n_sharelike
+    }
+    if `n_sharelike' > 0 & `cbar' > 1000 {
+        di as err "anchors() takes published undocumented COUNTS, not shares."
+        di as err "  `n_sharelike' anchor value(s) below 1 while `ncvar' averages " ///
+            %12.0fc `cbar' "."
+        di as err "  Pass e.g. anchors(2023=14000000), not anchors(2023=0.61)."
+        exit 198
+    }
+
     // ---- Compute theta at anchor rows.
     tempvar theta_a
     quietly gen double `theta_a' = `generate'published / `ncvar' if `touse'
+
+    // ---- Guard: theta outside (0,1) implies more undocumented residents than
+    //      noncitizens (or a negative count), which the identity U = C - L with
+    //      L >= 0 cannot produce. Warn rather than stop: -apply- behaves the same.
+    quietly count if `touse' & !missing(`theta_a') & (`theta_a' <= 0 | `theta_a' >= 1)
+    if r(N) > 0 {
+        quietly summarize `theta_a' if `touse' & (`theta_a' <= 0 | `theta_a' >= 1), meanonly
+        di as text "note: " r(N) " anchor(s) imply theta outside (0,1) " ///
+            "(most extreme " %6.4f r(max) "); the anchor count exceeds " ///
+            "`ncvar' at that year. Check the anchor and the noncitizen series."
+    }
 
     // ---- Interpolate theta across all touse rows.
     quietly gen double `generate'theta = .
