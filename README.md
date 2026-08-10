@@ -240,8 +240,11 @@ numbers as preliminary.
 ## Citing
 
 If you use the package, please cite Warren, Warren, and Zheng (2023) for the
-method and this package as: Booth, E. (2026). *residualundoc: a Stata package for
-residual-method estimation of the undocumented population.*
+method and this package as: 
+Booth, Eric A. (2026). *residualundoc: a Stata package for residual-method estimation of the undocumented population.* 
+
+The paper citation for this work is:
+Booth, Eric A. (2026) "Estimating State Undocumented Populations from Published Survey Tables: A Reduced-Form Residual Method for Applied Policy Work" _Munich Personal RePEc Archive Paper No. 130290._ Available: https://mpra.ub.uni-muenchen.de/id/eprint/130290
 
 ## Author and license
 
