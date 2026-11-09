@@ -246,6 +246,20 @@ Booth, Eric A. (2026). *residualundoc: a Stata package for residual-method estim
 The paper citation for this work is:
 Booth, Eric A. (2026) "Estimating State Undocumented Populations from Published Survey Tables: A Reduced-Form Residual Method for Applied Policy Work" _Munich Personal RePEc Archive Paper No. 130290._ Available: https://mpra.ub.uni-muenchen.de/id/eprint/130290
 
+## Changes
+
+- **1.1.1 (2026-11-09):** `bysort group: residualundoc interp ...`, which the
+  help documents for panels, now works; 1.1.0 stopped with r(190) because the
+  dispatcher was not byable. Under `by:`, the first group creates the output
+  variables and later groups fill their own rows. `interp` also no longer reads
+  across rows outside the estimation sample when it fills flat tails or
+  `interpolate(nearest)`: with several groups in memory, the documented
+  one-group-at-a-time `if` form left those years missing (in the worked
+  example, U.S. 2024 under the Pew series and Texas 2015-2018 under the MPI
+  series). The worked example no longer saves its temporary `us_row` marker
+  into `example_residualundoc.dta` (it appeared there as `__000000`), and the
+  dataset has been regenerated with the fixed `interp` code.
+
 ## Author and license
 
 Eric A. Booth, Sr Researcher, Texas 2036 (eric.a.booth@gmail.com). Released

@@ -199,6 +199,10 @@ residualundoc direct year noncitizen_total if geo == "United States",         //
 list year noncitizen_total u_dir_L u_dir_undoc u_dir_emigration_used ///
     if geo == "United States" & inlist(year, 2010, 2015, 2019, 2023, 2024), sep(0) noobs
 
+* A do-file tempvar lives until the do-file ends, so it would ride along into
+* the saved panel below as __000000; drop it once it has served its purpose.
+drop `us_row'
+
 * Sanity check: U_hat should match the Pew anchors at target years by construction.
 quietly summarize u_dir_undoc if geo == "United States" & year == 2010, meanonly
 assert abs(r(mean) - 11400000) < 1

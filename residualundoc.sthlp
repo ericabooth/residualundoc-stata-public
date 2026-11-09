@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.1.0  2026-07-03}{...}
+{* *! version 1.1.1  2026-11-09}{...}
 {title:Title}
 
 {p2colset 5 26 26 2}{...}
@@ -126,8 +126,16 @@ Output variables added to the data (using default prefix {cmd:u_}):
 {synoptline}
 
 {pstd}
-For a panel with multiple groups, run once per group (via {cmd:if}) or use
-{cmd:bysort {it:group}: residualundoc interp ...}.
+For a panel with multiple groups, run once per group (via {cmd:if}, with a
+different {opt generate()} prefix each time) or use
+{cmd:bysort {it:group}: residualundoc interp ...}, which fills one set of
+output variables group by group with the same {opt anchors()}.  {cmd:by:} is
+supported for {cmd:interp} only.  Interpolation, the tails, and
+{cmd:interpolate(nearest)} use only rows in the estimation sample, so rows of
+other groups or rows excluded by {cmd:if}/{cmd:in} never feed a group's
+values.  (Before version 1.1.1 the {cmd:by:} form stopped with error 190, and
+when the data held several groups the {cmd:if} form could leave flat tails
+and {cmd:nearest} years missing.)
 
 
 {marker apply}{...}

@@ -16,7 +16,7 @@ d Requires: Stata 15 or later.
 d Author: Eric A. Booth, Sr Researcher, Texas 2036
 d Support:  eric.a.booth@gmail.com
 d
-d Distribution-Date: 20260703
+d Distribution-Date: 20261109
 f residualundoc.ado
 f residualundoc_interp.ado
 f residualundoc_apply.ado

@@ -1,4 +1,4 @@
-*! version 1.0.0  Texas 2036 / Eric Booth  2026-07-02
+*! version 1.0.1  Texas 2036 / Eric Booth  2026-11-09
 *! residualundoc_interp: anchor-interpolation implementation of the residual
 *! method for estimating the undocumented population.
 *! -----------------------------------------------------------------------------
@@ -24,6 +24,10 @@
 *!
 *! For panel data with multiple groups, run once per group with -if- or use
 *! -bysort group: residualundoc interp ...-.
+*! 1.0.1: by-safe.  Under by:, the first group creates the output variables
+*! and later groups fill their own rows; the fill-forward/backward passes no
+*! longer read across rows outside the estimation sample (another group, or
+*! rows excluded by if/in).
 *! -----------------------------------------------------------------------------
 
 program define residualundoc_interp, rclass byable(recall)
@@ -88,22 +92,34 @@ program define residualundoc_interp, rclass byable(recall)
         exit 198
     }
 
+    // ---- Under by:, the first group checks for and creates the output
+    //      variables; later groups only fill their own rows.
+    local first = (!_by() | _byindex() == 1)
+
     // ---- Build variable list under a temporary touse; drop existing outputs.
-    foreach suf in theta undoc lawful published at_anchor pct_pop {
-        capture confirm variable `generate'`suf'
-        if !_rc {
-            if "`replace'" == "" {
-                di as err "`generate'`suf' exists; use -replace-"
-                exit 110
+    if `first' {
+        foreach suf in theta undoc lawful published at_anchor pct_pop {
+            capture confirm variable `generate'`suf'
+            if !_rc {
+                if "`replace'" == "" {
+                    di as err "`generate'`suf' exists; use -replace-"
+                    exit 110
+                }
+                drop `generate'`suf'
             }
-            drop `generate'`suf'
         }
     }
     marksample touse
 
     // ---- Place published anchor values on their years.
-    quietly gen double `generate'published = .
-    quietly gen byte   `generate'at_anchor = 0
+    if `first' {
+        quietly gen double `generate'published = .
+        quietly gen byte   `generate'at_anchor = 0
+        quietly gen double `generate'theta     = .
+        quietly gen double `generate'undoc     = .
+        quietly gen double `generate'lawful    = .
+        if "`pop'" != "" quietly gen double `generate'pct_pop = .
+    }
     forvalues i = 1/`nA' {
         local yv : word `i' of `years_'
         local pv : word `i' of `values_'
@@ -147,14 +163,17 @@ program define residualundoc_interp, rclass byable(recall)
     }
 
     // ---- Interpolate theta across all touse rows.
-    quietly gen double `generate'theta = .
 
     // Preserve original row order via -sortkey- so we return the data unchanged.
-    tempvar sortkey
+    // Every sort below puts the touse rows first and contiguous, and every
+    // [_n-1] fill also requires the previous row to be a touse row, so a fill
+    // never reads a row from another by-group or one excluded by if/in.
+    tempvar sortkey ntouse
     gen long `sortkey' = _n
+    quietly gen byte `ntouse' = !`touse'
 
     if "`interpolate'" == "linear" {
-        sort `yearvar' `sortkey'
+        sort `ntouse' `yearvar' `sortkey'
         tempvar ip
         quietly ipolate `theta_a' `yearvar' if `touse', gen(`ip')
         quietly replace `generate'theta = `ip' if `touse'
@@ -170,7 +189,7 @@ program define residualundoc_interp, rclass byable(recall)
         if r(N) > 0 {
             di as text "note: interpolate(logit) requires 0<theta<1 at anchors; " ///
                 "some anchors fall outside (0,1); falling back to linear."
-            sort `yearvar' `sortkey'
+            sort `ntouse' `yearvar' `sortkey'
             tempvar ip
             quietly ipolate `theta_a' `yearvar' if `touse', gen(`ip')
             quietly replace `generate'theta = `ip' if `touse'
@@ -178,26 +197,26 @@ program define residualundoc_interp, rclass byable(recall)
         else {
             tempvar lgt lgt_ip
             quietly gen double `lgt' = logit(`theta_a')
-            sort `yearvar' `sortkey'
+            sort `ntouse' `yearvar' `sortkey'
             quietly ipolate `lgt' `yearvar' if `touse', gen(`lgt_ip')
             quietly replace `generate'theta = invlogit(`lgt_ip') if `touse'
         }
     }
     else if "`interpolate'" == "nearest" {
-        sort `yearvar' `sortkey'
+        sort `ntouse' `yearvar' `sortkey'
         tempvar prev nxt prev_yr nxt_yr
         quietly gen double `prev'    = `theta_a'
         quietly gen double `nxt'     = `theta_a'
         quietly gen double `prev_yr' = `yearvar' if !missing(`theta_a')
         quietly gen double `nxt_yr'  = `yearvar' if !missing(`theta_a')
         // Forward fill.
-        quietly replace `prev'    = `prev'[_n-1]    if missing(`prev')    & `touse' & _n > 1
-        quietly replace `prev_yr' = `prev_yr'[_n-1] if missing(`prev_yr') & `touse' & _n > 1
+        quietly replace `prev'    = `prev'[_n-1]    if missing(`prev')    & `touse' & _n > 1 & `touse'[_n-1]
+        quietly replace `prev_yr' = `prev_yr'[_n-1] if missing(`prev_yr') & `touse' & _n > 1 & `touse'[_n-1]
         // Backward fill via descending pass.
-        gsort - `yearvar' - `sortkey'
-        quietly replace `nxt'    = `nxt'[_n-1]    if missing(`nxt')    & `touse' & _n > 1
-        quietly replace `nxt_yr' = `nxt_yr'[_n-1] if missing(`nxt_yr') & `touse' & _n > 1
-        sort `yearvar' `sortkey'
+        gsort `ntouse' - `yearvar' - `sortkey'
+        quietly replace `nxt'    = `nxt'[_n-1]    if missing(`nxt')    & `touse' & _n > 1 & `touse'[_n-1]
+        quietly replace `nxt_yr' = `nxt_yr'[_n-1] if missing(`nxt_yr') & `touse' & _n > 1 & `touse'[_n-1]
+        sort `ntouse' `yearvar' `sortkey'
         quietly replace `generate'theta = cond(missing(`prev'), `nxt', ///
             cond(missing(`nxt'), `prev', ///
                 cond(`yearvar' - `prev_yr' <= `nxt_yr' - `yearvar', `prev', `nxt'))) ///
@@ -210,15 +229,15 @@ program define residualundoc_interp, rclass byable(recall)
     local ya_max = r(max)
 
     if "`tails'" == "flat" {
-        sort `yearvar' `sortkey'
+        sort `ntouse' `yearvar' `sortkey'
         // Flat forward.
         quietly replace `generate'theta = `generate'theta[_n-1] ///
-            if `touse' & missing(`generate'theta) & !missing(`generate'theta[_n-1])
+            if `touse' & missing(`generate'theta) & !missing(`generate'theta[_n-1]) & `touse'[_n-1]
         // Flat backward.
-        gsort - `yearvar' - `sortkey'
+        gsort `ntouse' - `yearvar' - `sortkey'
         quietly replace `generate'theta = `generate'theta[_n-1] ///
-            if `touse' & missing(`generate'theta) & !missing(`generate'theta[_n-1])
-        sort `yearvar' `sortkey'
+            if `touse' & missing(`generate'theta) & !missing(`generate'theta[_n-1]) & `touse'[_n-1]
+        sort `ntouse' `yearvar' `sortkey'
     }
     else if "`tails'" == "linear" & `nA' >= 2 {
         // Linear extrapolation from the two nearest anchor values on each end.
@@ -267,11 +286,11 @@ program define residualundoc_interp, rclass byable(recall)
     drop `sortkey'
 
     // ---- Compute the estimated undocumented count and residual lawful.
-    quietly gen double `generate'undoc  = `generate'theta * `ncvar' if `touse'
-    quietly gen double `generate'lawful = `ncvar' - `generate'undoc if `touse'
+    quietly replace `generate'undoc  = `generate'theta * `ncvar' if `touse'
+    quietly replace `generate'lawful = `ncvar' - `generate'undoc if `touse'
 
     if "`pop'" != "" {
-        quietly gen double `generate'pct_pop = `generate'undoc / `pop' if `touse'
+        quietly replace `generate'pct_pop = `generate'undoc / `pop' if `touse'
         label variable `generate'pct_pop "Estimated undocumented share of total population"
     }
 

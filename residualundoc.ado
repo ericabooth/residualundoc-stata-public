@@ -1,4 +1,4 @@
-*! version 1.1.0  Texas 2036 / Eric Booth  2026-07-03
+*! version 1.1.1  Texas 2036 / Eric Booth  2026-11-09
 *! residualundoc: residual-method estimator of the undocumented population.
 *! -----------------------------------------------------------------------------
 *! Implements a family of residual-method estimators of the undocumented
@@ -34,9 +34,14 @@
 *! See -help residualundoc- for full syntax and options.
 *! -----------------------------------------------------------------------------
 
-program define residualundoc, rclass
+program define residualundoc, rclass byable(onecall)
     version 15.0
 
+    // 1.1.1: byable(onecall), so the documented
+    //   bysort group: residualundoc interp ...
+    // reaches residualundoc_interp with its by prefix (1.1.0 stopped with
+    // r(190), "may not be combined with by").  by: is supported for interp
+    // only; the other subcommands work on one series or cross-section.
     gettoken subcmd 0 : 0, parse(" ,")
     local subcmd = strtrim(`"`subcmd'"')
     local known "interp apply direct transport triangulate"
@@ -46,8 +51,17 @@ program define residualundoc, rclass
         local subcmd "interp"
     }
 
+    if _by() & "`subcmd'" != "interp" {
+        di as err "residualundoc `subcmd' may not be combined with by; " ///
+            "by: is supported with residualundoc interp only"
+        exit 190
+    }
+
     if "`subcmd'" == "interp" {
-        residualundoc_interp `0'
+        if _by() {
+            by `_byvars' `_byrc0': residualundoc_interp `0'
+        }
+        else residualundoc_interp `0'
     }
     else if "`subcmd'" == "apply" {
         residualundoc_apply `0'
