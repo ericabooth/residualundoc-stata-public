@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.1.1  2026-11-09}{...}
+{* *! version 1.1.2  2026-11-09}{...}
 {title:Title}
 
 {p2colset 5 26 26 2}{...}
@@ -35,35 +35,35 @@ undocumented (unauthorized) immigrant population, following
 identity is
 
 {p 8 12 2}
-{it:U}{sub:{it:t}} = {it:C}{sub:{it:t}} - {it:L}{sub:{it:t}}
+{it:U_t} = {it:C_t} - {it:L_t}
 
 {pstd}
-where {it:C}{sub:{it:t}} is survey-measured noncitizens (typically the ACS
+where {it:C_t} is survey-measured noncitizens (typically the ACS
 {it:not a U.S. citizen} category, adjusted for survey undercount) and
-{it:L}{sub:{it:t}} is the legal noncitizen population reconstructed
+{it:L_t} is the legal noncitizen population reconstructed
 year-by-year from administrative data (DHS lawful admissions, naturalizations,
 life-table mortality, and derived-from-ACS emigration).
 
 {pstd}
-Because {it:L}{sub:{it:t}} moves slowly, the ratio
+Because {it:L_t} moves slowly, the ratio
 
 {p 8 12 2}
-{it:theta}{sub:{it:t}} = {it:U}{sub:{it:t}} / {it:C}{sub:{it:t}} = 1 - {it:L}{sub:{it:t}} / {it:C}{sub:{it:t}}
+{it:theta_t} = {it:U_t} / {it:C_t} = 1 - {it:L_t} / {it:C_t}
 
 {pstd}
 is a slow-moving demographic quantity. Different reputable residual-method
-implementations (Pew, MPI, and CMS) publish {it:U}{sub:{it:t}} for specific
+implementations (Pew, MPI, and CMS) publish {it:U_t} for specific
 years and geographies; each implicitly pins {it:theta} at those years.
 {cmd:residualundoc interp} imports {it:theta} from a residual-method source
 at anchor years, linearly interpolates between them, and computes
-{it:U-hat}{sub:{it:t}} = {it:theta}{sub:{it:t}} * {it:C}{sub:{it:t}}. This
+{it:U-hat_t} = {it:theta_t} * {it:C_t}. This
 reproduces the source's published values exactly at anchor years and lets ACS
 noncitizen movement carry between-anchor and beyond-anchor variation.
 
 {pstd}
 {cmd:residualundoc apply} is the cross-sectional counterpart: it applies a single
 {it:theta} to every unit (for example, every state) in one year, computing
-{it:U-hat}{sub:{it:g}} = {it:theta} * {it:C}{sub:{it:g}}. If a directly published
+{it:U-hat_g} = {it:theta} * {it:C_g}. If a directly published
 ("direct") residual estimate is supplied for each unit, it reports where the
 single-{it:theta} shortcut agrees and where it misses: the share of units within a
 tolerance of the direct estimate and an index of dissimilarity (the share of the
@@ -184,14 +184,14 @@ with {opt direct()}, {cmd:r(dissimilarity)}, {cmd:r(within_tol)},
 {opth under:count(varname)} {opt targ:etu(spec)} {opt gen:erate(prefix)} {opt rep:lace} ]
 
 {pstd}
-Roll {it:L}{sub:{it:t}} forward each year:
+Roll {it:L_t} forward each year:
 
 {p 8 12 2}
-{it:L}{sub:{it:t}} = {it:L}{sub:{it:t}-1} + arrivals - natz - deaths - emigration
+{it:L_t} = {it:L_(t-1)} + arrivals - natz - deaths - emigration
 
 {pstd}
 Emigration is either supplied (a count series, or a rate with {opt asrate}),
-or {it:derived} so that {it:U}{sub:{it:t}} equals a target value in one or
+or {it:derived} so that {it:U_t} equals a target value in one or
 more anchor years (Warren's "derive emigration from ACS" innovation, generalized
 here to any year with a published residual-method anchor). If neither is given,
 emigration is treated as zero and a note is printed.
@@ -202,12 +202,25 @@ emigration is treated as zero and a note is printed.
 {synopt:{opth ar:rivals(varname)}}Required. Immigrant + refugee + asylee + adjusted nonimmigrant arrivals in year t.{p_end}
 {synopt:{opth na:tz(varname)}}Required. Naturalizations in year t.{p_end}
 {synopt:{opth de:aths(varname)}}Required. Deaths of legal noncitizens in year t (life-table method).{p_end}
-{synopt:{opt l0(#)}}Required. Starting {it:L}{sub:{it:t}0} in the first year of the touse subset.{p_end}
+{synopt:{opt l0(#)}}Required. Starting {it:L_t0} in the first year of the touse subset.{p_end}
 {synopt:{opth em:igration(varname)}}Optional emigration series (count or rate; use {opt asrate}).{p_end}
-{synopt:{opt asrate}}Interpret {opth em:igration()} as a rate on the prior year's {it:L}.{p_end}
+{synopt:{opt asrate}}Interpret {opt em:igration()} as a rate on the prior year's {it:L}.{p_end}
 {synopt:{opth under:count(varname)}}Rate by which arrivals and {it:C} are inflated (e.g., 0.072 for 7.2%).{p_end}
 {synopt:{opt targ:etu(spec)}}Space-separated {it:year}={it:U-target} pairs to derive emigration
 so {it:U-hat} hits the target(s).{p_end}
+{synopt:{opt gen:erate(prefix)}}Prefix for output variables (default {cmd:u_}).{p_end}
+{synopt:{opt rep:lace}}Overwrite prior output variables with the same prefix.{p_end}
+{synoptline}
+
+{pstd}
+Output variables (default prefix {cmd:u_}):
+
+{synoptset 24 tabbed}{...}
+{synopt:{cmd:u_L}}Reconstructed legal noncitizens, {it:L_t}.{p_end}
+{synopt:{cmd:u_undoc}}Estimated undocumented population, {it:U_t} = adjusted {it:C_t} - {it:L_t}.{p_end}
+{synopt:{cmd:u_emigration_used}}Emigration used at each step (supplied or target-derived).{p_end}
+{synopt:{cmd:u_arrivals_adj}}Arrivals adjusted for undercount (equal to {opt arrivals()} without {opt undercount()}).{p_end}
+{synopt:{cmd:u_nc_adj}}Survey noncitizens adjusted for undercount (equal to {it:noncitizensvar} without {opt undercount()}).{p_end}
 {synoptline}
 
 
@@ -226,7 +239,14 @@ so {it:U-hat} hits the target(s).{p_end}
 Example: {cmd:anchor(2023 0.664)}.{p_end}
 {synopt:{opth ye:ar(varname)}}Numeric year variable; defaults to a variable named {cmd:year}.{p_end}
 {synopt:{opth sc:ale(name)}}{cmd:odds} (default), {cmd:logit}, or {cmd:ratio}.{p_end}
+{synopt:{opt gen:erate(prefix)}}Prefix for output variables (default {cmd:u_}).{p_end}
+{synopt:{opt rep:lace}}Overwrite prior output variables with the same prefix.{p_end}
 {synoptline}
+
+{pstd}
+Output variables (default prefix {cmd:u_}): {cmd:u_transported_rate}, the rate
+transported to the benchmark, and {cmd:u_transported_kappa}, the calibration
+constant (the same value on every row).
 
 {pstd}
 Odds- and logit-scale transports are algebraically equivalent and keep the
@@ -239,12 +259,23 @@ often saturates at 1 for high baseline rates.
 
 {p 8 16 2}
 {cmd:residualundoc triangulate}{cmd:,}
-{opt ye:ar(#)} {opt so:urces(spec)} [ {opth work:flow(#)} {opt sa:ve(filename)} ]
+{opt ye:ar(#)} {opt so:urces(spec)} [ {opt work:flow(#)} {cmd:save(}{it:filename} [{cmd:, replace}]{cmd:)} ]
 
 {pstd}
 Prints a name-and-value table of residual-method estimates at a single year,
 plus the min/max spread; optionally overlays your own workflow's value and
 flags whether it is inside the source range.
+
+{pstd}
+{cmd:save()} writes the table (variables {cmd:source}, {cmd:year}, and
+{cmd:value}; one row per source, plus a {cmd:This workflow} row with
+{opt workflow()}).  A filename ending in {cmd:.dta} is saved as a Stata
+dataset; any other name is written as CSV with {cmd:export delimited}, which
+adds {cmd:.csv} when there is no extension.  An existing file is overwritten
+only with the {cmd:replace} suboption, as in
+{cmd:save("results/tri.dta", replace)}.  Before version 1.1.2, {cmd:save()}
+wrote CSV text even into a file named {it:.dta}, and a filename with a space
+failed.
 
 
 {marker pums}{...}
@@ -356,8 +387,14 @@ Compare Pew, CMS, and MPI 2023 U.S. estimates against your workflow value:{p_end
 {cmd:r(anchor_value)}, and {cmd:r(scale)}.
 
 {pstd}
-{cmd:residualundoc triangulate} stores {cmd:r(min)}, {cmd:r(max)},
-{cmd:r(spread_pct)}, {cmd:r(N_sources)}, and (if given) {cmd:r(workflow)}.
+{cmd:residualundoc triangulate} stores {cmd:r(year)}, {cmd:r(min)}, {cmd:r(max)},
+{cmd:r(spread_pct)}, {cmd:r(N_sources)}, {cmd:r(sources)}, {cmd:r(values)},
+(if given) {cmd:r(workflow)}, and, with {cmd:save()}, {cmd:r(saved)} (the
+filename written).
+
+{pstd}
+{cmd:residualundoc direct} stores {cmd:r(L0)}, {cmd:r(N)}, {cmd:r(y0)}, and
+{cmd:r(Nanchors)}.
 
 
 {title:Definitions and boundaries}

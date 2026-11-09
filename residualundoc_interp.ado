@@ -1,4 +1,4 @@
-*! version 1.0.1  Texas 2036 / Eric Booth  2026-11-09
+*! version 1.0.2  Texas 2036 / Eric Booth  2026-11-09
 *! residualundoc_interp: anchor-interpolation implementation of the residual
 *! method for estimating the undocumented population.
 *! -----------------------------------------------------------------------------
@@ -28,6 +28,9 @@
 *! and later groups fill their own rows; the fill-forward/backward passes no
 *! longer read across rows outside the estimation sample (another group, or
 *! rows excluded by if/in).
+*! 1.0.2: r(anchor_years) and r(anchor_values) carry no leading space; an
+*! empty estimation sample (outside by:) stops with error 2000 and a message
+*! instead of an internal ipolate error.
 *! -----------------------------------------------------------------------------
 
 program define residualundoc_interp, rclass byable(recall)
@@ -92,6 +95,17 @@ program define residualundoc_interp, rclass byable(recall)
         exit 198
     }
 
+    // ---- Estimation sample; outside by:, an empty one stops here, before
+    //      any existing output variable is dropped.
+    marksample touse
+    if !_by() {
+        quietly count if `touse'
+        if r(N) == 0 {
+            di as err "residualundoc interp: no observations in the estimation sample"
+            exit 2000
+        }
+    }
+
     // ---- Under by:, the first group checks for and creates the output
     //      variables; later groups only fill their own rows.
     local first = (!_by() | _byindex() == 1)
@@ -109,7 +123,6 @@ program define residualundoc_interp, rclass byable(recall)
             }
         }
     }
-    marksample touse
 
     // ---- Place published anchor values on their years.
     if `first' {
@@ -317,8 +330,8 @@ program define residualundoc_interp, rclass byable(recall)
         "interp=" as result "`interpolate'" as text ", tails=" as result "`tails'"
 
     return scalar N_anchors    = `nA'
-    return local  anchor_years  `"`years_'"'
-    return local  anchor_values `"`values_'"'
+    return local  anchor_years  `"`=strtrim("`years_'")'"'
+    return local  anchor_values `"`=strtrim("`values_'")'"'
     return local  anchor_source `"`sourcename'"'
     return local  interp        `"`interpolate'"'
     return local  tails         `"`tails'"'

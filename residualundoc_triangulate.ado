@@ -1,21 +1,49 @@
-*! version 1.0.0  Texas 2036 / Eric Booth  2026-07-02
+*! version 1.0.1  Texas 2036 / Eric Booth  2026-11-09
 *! residualundoc_triangulate: side-by-side residual-method comparison at a
 *! single year. Handy for reporting the Pew/MPI/CMS 2023 range together with
 *! your own workflow estimate.
 *! -----------------------------------------------------------------------------
 *! Syntax:
-*!   residualundoc triangulate, YEar(#) SOurces(spec) [ WORKflow(#) SAve(fn) ]
+*!   residualundoc triangulate, YEar(#) SOurces(spec) [ WORKflow(#)
+*!                                SAve(filename [, replace]) ]
 *!
 *! Sources spec is space-separated name=value pairs:
 *!   sources(Pew=14000000 CMS=12244500 MPI=13738000)
 *! Optionally add a WORKflow(#) value to display alongside the sources; this
 *! is the estimate from your own -residualundoc interp- run.
+*! save() writes a Stata dataset when the filename ends in .dta and a CSV
+*! (export delimited; .csv is added when there is no extension) otherwise.
+*! 1.0.1: save() quotes the filename (spaces and accented characters work),
+*! picks the writer from the extension (1.0.0 wrote CSV text into a .dta),
+*! accepts a replace suboption, and reports a failed write instead of
+*! silently falling back to -save-.
 *! -----------------------------------------------------------------------------
 
 program define residualundoc_triangulate, rclass
     version 15.0
 
-    syntax , YEar(int) SOurces(string) [ WORKflow(real -1e30) SAve(string) ]
+    syntax , YEar(int) SOurces(string) [ WORKflow(real -1e30) SAve(string asis) ]
+
+    // save(filename [, replace]): split and check before any output
+    local savefile ""
+    local saverep  ""
+    if `"`save'"' != "" {
+        gettoken savefile saveopts : save, parse(",")
+        local saveopts = strtrim(`"`saveopts'"')
+        if substr(`"`saveopts'"', 1, 1) == "," {
+            local saveopts = strtrim(substr(`"`saveopts'"', 2, .))
+        }
+        if `"`saveopts'"' == "replace" local saverep "replace"
+        else if `"`saveopts'"' != "" {
+            di as err `"save(): suboption `saveopts' not allowed; only replace is"'
+            exit 198
+        }
+        if `"`savefile'"' == "" {
+            di as err "save() requires a filename"
+            exit 198
+        }
+        local savedta = (lower(substr(`"`savefile'"', -4, .)) == ".dta")
+    }
 
     // Parse sources into two parallel locals.
     local names  ""
@@ -77,7 +105,7 @@ program define residualundoc_triangulate, rclass
     return local  values       `"`values'"'
     if `workflow' > -1e29 return scalar workflow = `workflow'
 
-    if "`save'" != "" {
+    if `"`savefile'"' != "" {
         preserve
             clear
             local N = `nS' + cond(`workflow' > -1e29, 1, 0)
@@ -95,10 +123,22 @@ program define residualundoc_triangulate, rclass
                 quietly replace source = "This workflow" in `=`nS' + 1'
                 quietly replace value  = `workflow'      in `=`nS' + 1'
             }
-            local savefile : word 1 of `save'
-            local savefile = subinstr(`"`savefile'"', ",", "", .)
-            capture export delimited using `save'
-            if _rc quietly save `save'
+            if `savedta' {
+                capture quietly save `"`savefile'"', `saverep'
+            }
+            else {
+                capture quietly export delimited using `"`savefile'"', `saverep'
+            }
+            local rc = _rc
+            if `rc' == 602 {
+                di as err `"save(): file `savefile' already exists; specify save(filename, replace)"'
+                exit 602
+            }
+            else if `rc' {
+                di as err `"save(): could not write `savefile'"'
+                exit `rc'
+            }
         restore
+        return local saved `"`savefile'"'
     }
 end

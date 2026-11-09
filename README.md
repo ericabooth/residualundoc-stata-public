@@ -174,7 +174,20 @@ di r(theta), r(dissimilarity), r(within_tol)
 * Insurance: transport the ACS noncitizen uninsured rate to a benchmark
 residualundoc transport noncitizen_unins_rate, year(year) ///
     anchor(2023 0.664) scale(odds) generate(u_ins_)
+
+* Triangulation: published sources side by side with your own estimate;
+* save() writes a .dta (or a CSV for any other extension), replace to rerun
+residualundoc triangulate, year(2023) ///
+    sources(Pew=14000000 CMS=12244500 MPI=13738000) workflow(14000000) ///
+    save("triangulate_2023.dta", replace)
 ```
+
+`apply` takes `moe()` (the ACS 90% margin of error) for a sampling interval,
+`cilevel()` to change its level (default 90), and `srcrse()` to widen it into a
+robustness band. `help residualundoc` lists the output variables each
+subcommand creates: for example, `direct` adds `u_L`, `u_undoc`,
+`u_emigration_used`, `u_arrivals_adj`, and `u_nc_adj`, and `transport` adds
+`u_transported_rate` and `u_transported_kappa` (with the default prefix `u_`).
 
 Run `example_residualundoc.do` for a self-contained tour of all five subcommands
 plus the ACS PUMS integration pattern. It uses simulated data and needs no
@@ -248,6 +261,15 @@ Booth, Eric A. (2026) "Estimating State Undocumented Populations from Published 
 
 ## Changes
 
+- **1.1.2 (2026-11-09):** `triangulate`'s `save()` picks the writer from the
+  extension: a `.dta` name is saved as a Stata dataset (1.1.1 and earlier wrote
+  CSV text into it, so `use` failed with r(610)), and any other name is written
+  as CSV. The filename is quoted, so paths with spaces or accented characters
+  work, and `save(filename, replace)` overwrites an existing file. `interp`
+  returns `r(anchor_years)` and `r(anchor_values)` without a leading space, and
+  an empty estimation sample stops with error 2000 and a plain message instead
+  of an internal `ipolate` error. The help now lists the output variables of
+  `direct` and `transport` and renders its subscripts as plain text.
 - **1.1.1 (2026-11-09):** `bysort group: residualundoc interp ...`, which the
   help documents for panels, now works; 1.1.0 stopped with r(190) because the
   dispatcher was not byable. Under `by:`, the first group creates the output

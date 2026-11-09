@@ -1,4 +1,4 @@
-*! version 1.1.1  Texas 2036 / Eric Booth  2026-11-09
+*! version 1.1.2  Texas 2036 / Eric Booth  2026-11-09
 *! residualundoc: residual-method estimator of the undocumented population.
 *! -----------------------------------------------------------------------------
 *! Implements a family of residual-method estimators of the undocumented
