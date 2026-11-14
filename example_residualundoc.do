@@ -9,8 +9,8 @@
 *
 * This example is didactic. The values are close enough to real 2010-2024
 * estimates to be recognizable but should not be used as authoritative
-* estimates. For a production application see the workflow in
-*   Undocumented_Estimation/code/01_acs_residual_undocumented_estimates.do
+* estimates. For a production application, replace the synthetic panel with
+* your own ACS noncitizen counts and published residual-method anchors.
 *
 * Reference:
 *   Warren R, Warren JR, Zheng P (2023). "A New Residual Approach for
@@ -25,9 +25,9 @@ set more off
 * -------------------------------------------------------------------------------
 * 0. Make -residualundoc- discoverable
 * -------------------------------------------------------------------------------
-* Adjust this path to wherever this .ado family lives on your machine. On the
-* Texas 2036 workstation, running from -stata_package/- picks up the ados in
-* the current directory automatically via -adopath ++-.
+* If the package is installed (net install), this line is harmless. If it is
+* not, run this file from the folder that holds the residualundoc .ado files;
+* -adopath ++- below adds the current directory to the ado-path.
 adopath ++ "`c(pwd)'"
 
 * -------------------------------------------------------------------------------

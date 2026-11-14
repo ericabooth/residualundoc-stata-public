@@ -306,11 +306,17 @@ Collapse the weighted noncitizen counts (and the noncitizen uninsured rate) to t
 cell level, then apply {it:theta} and transport the rate:
 
 {phang2}
+. {cmd:gen double nc_w   = pwgtp * noncit}{p_end}
+{phang2}
+. {cmd:gen double ncun_w = pwgtp * noncit * unins}{p_end}
+{phang2}
 . {cmd:collapse (sum) nc_w ncun_w, by(agegroup)}{p_end}
 {phang2}
 . {cmd:gen double noncit_count = nc_w}{p_end}
 {phang2}
 . {cmd:gen double nc_unins_rate = ncun_w / nc_w}{p_end}
+{phang2}
+. {cmd:gen int year = 2024}    {it:(the survey year)}{p_end}
 {phang2}
 . {cmd:residualundoc apply noncit_count, theta(0.62) generate(cell_)}{p_end}
 {phang2}
@@ -434,8 +440,8 @@ estimating undocumented populations. {it:International Migration Review},
 
 {p 4 8 2}
 Warren, R. (2014). Democratizing data about unauthorized residents in the
-United States: Estimates and public-use data, 2010 to 2013. {it:Journal on
-Migration and Human Security}, 2(4), 305-328.
+United States: Estimates and public-use data, 2010 to 2013.
+{it:Journal on Migration and Human Security}, 2(4), 305-328.
 
 {p 4 8 2}
 Passel, J. S., & Krogstad, J. M. (2025). U.S. unauthorized immigrant
